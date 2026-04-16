@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Sparkles, Rocket } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AnnouncementModalProps {
   isOpen: boolean;

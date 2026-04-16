@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Order } from '../types';
 import { formatRupiah } from '../constants';
 import { X, Clock, CheckCircle, Hourglass, FileCheck } from 'lucide-react';

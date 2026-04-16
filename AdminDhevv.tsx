@@ -3,6 +3,7 @@ import { supabase } from './lib/supabase';
 import { Trash2, Plus, Percent, DollarSign, Tag, Hash, Check, Search, Users, Ticket, ArrowLeft, ChevronRight, Package } from 'lucide-react';
 import { PRODUCTS, formatRupiah } from './constants';
 import { Product } from './types';
+import AnimatedButton from './components/AnimatedButton.tsx';
 
 interface Voucher {
   id: number;
@@ -336,12 +337,12 @@ const AdminDhevv: React.FC = () => {
           <h1 className="text-xl sm:text-2xl font-bold text-stone-900">
             Admin Dhevv
           </h1>
-          <button 
+          <AnimatedButton 
             onClick={() => window.location.href = '/'}
             className="px-4 py-2 bg-stone-100 border border-stone-200 rounded-xl text-sm font-medium hover:bg-stone-200 transition-colors"
           >
             Kembali ke Web
-          </button>
+          </AnimatedButton>
         </div>
 
         {/* Toast Notification */}
@@ -382,7 +383,7 @@ const AdminDhevv: React.FC = () => {
 
             {/* Main Menu Buttons */}
             <div className="grid grid-cols-1 gap-4">
-              <button onClick={() => setActiveTab('products')} className="w-full bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-burgundy-500 transition-all rounded-2xl p-6 flex items-center gap-4 group text-left">
+              <AnimatedButton onClick={() => setActiveTab('products')} className="w-full bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-burgundy-500 transition-all rounded-2xl p-6 flex items-center gap-4 group text-left">
                 <div className="w-14 h-14 shrink-0 rounded-full bg-burgundy-50 text-burgundy-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Package size={28} />
                 </div>
@@ -391,9 +392,9 @@ const AdminDhevv: React.FC = () => {
                   <p className="text-sm text-stone-500">Tambah, Edit, Hapus Produk</p>
                 </div>
                 <ChevronRight className="text-stone-400 group-hover:text-burgundy-500 transition-colors" />
-              </button>
+              </AnimatedButton>
 
-              <button onClick={() => setActiveTab('vouchers')} className="w-full bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-burgundy-500 transition-all rounded-2xl p-6 flex items-center gap-4 group text-left">
+              <AnimatedButton onClick={() => setActiveTab('vouchers')} className="w-full bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-burgundy-500 transition-all rounded-2xl p-6 flex items-center gap-4 group text-left">
                 <div className="w-14 h-14 shrink-0 rounded-full bg-burgundy-50 text-burgundy-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Ticket size={28} />
                 </div>
@@ -402,9 +403,9 @@ const AdminDhevv: React.FC = () => {
                   <p className="text-sm text-stone-500">Kelola kode promo & diskon</p>
                 </div>
                 <ChevronRight className="text-stone-400 group-hover:text-burgundy-500 transition-colors" />
-              </button>
+              </AnimatedButton>
 
-              <button onClick={() => setActiveTab('users')} className="w-full bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-burgundy-500 transition-all rounded-2xl p-6 flex items-center gap-4 group text-left">
+              <AnimatedButton onClick={() => setActiveTab('users')} className="w-full bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-burgundy-500 transition-all rounded-2xl p-6 flex items-center gap-4 group text-left">
                 <div className="w-14 h-14 shrink-0 rounded-full bg-burgundy-50 text-burgundy-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Users size={28} />
                 </div>
@@ -413,18 +414,18 @@ const AdminDhevv: React.FC = () => {
                   <p className="text-sm text-stone-500">Lihat data pengguna terdaftar</p>
                 </div>
                 <ChevronRight className="text-stone-400 group-hover:text-burgundy-500 transition-colors" />
-              </button>
+              </AnimatedButton>
             </div>
           </div>
         ) : (
           <div ref={modalContainerRef} className="fixed inset-0 z-40 bg-stone-50 overflow-y-auto">
             <div className="sticky top-0 z-50 bg-white border-b border-stone-200 px-4 py-4 flex items-center gap-4 shadow-sm">
-              <button 
+              <AnimatedButton 
                 onClick={() => setActiveTab(null)}
                 className="p-2 bg-stone-100 hover:bg-stone-200 rounded-full text-stone-700 transition-colors"
               >
                 <ArrowLeft size={24} />
-              </button>
+              </AnimatedButton>
               <h2 className="text-xl font-bold text-stone-900 uppercase">
                 {activeTab === 'vouchers' ? 'Voucher Manager' : 
                  activeTab === 'products' ? 'Product Manager' : 'User Manager'}
@@ -507,13 +508,13 @@ const AdminDhevv: React.FC = () => {
                       <div className="border-t border-stone-200 pt-4 mt-4">
                         <div className="flex justify-between items-center mb-4">
                           <label className="text-sm text-stone-600 font-bold block">Variants</label>
-                          <button
+                          <AnimatedButton
                             type="button"
                             onClick={handleAddVariant}
                             className="text-xs bg-stone-200 hover:bg-stone-300 text-stone-800 px-3 py-1.5 rounded-lg font-bold transition-colors"
                           >
                             + Tambah Varian
-                          </button>
+                          </AnimatedButton>
                         </div>
                         
                         <div className="space-y-3">
@@ -544,13 +545,13 @@ const AdminDhevv: React.FC = () => {
                                 required
                               />
                               {productVariants.length > 1 && (
-                                <button
+                                <AnimatedButton
                                   type="button"
                                   onClick={() => handleRemoveVariant(index)}
                                   className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                 >
                                   <Trash2 size={18} />
-                                </button>
+                                </AnimatedButton>
                               )}
                             </div>
                           ))}
@@ -559,7 +560,7 @@ const AdminDhevv: React.FC = () => {
 
                       <div className="flex gap-3 pt-2">
                         {editingProductId && (
-                          <button
+                          <AnimatedButton
                             type="button"
                             onClick={() => {
                               setEditingProductId(null);
@@ -573,15 +574,15 @@ const AdminDhevv: React.FC = () => {
                             className="flex-1 py-3.5 rounded-xl bg-stone-200 text-stone-800 font-bold uppercase tracking-wide hover:bg-stone-300 transition-all"
                           >
                             Batal
-                          </button>
+                          </AnimatedButton>
                         )}
-                        <button
+                        <AnimatedButton
                           type="submit"
                           disabled={isSubmitting}
                           className="flex-[2] py-3.5 rounded-xl bg-burgundy-600 text-white font-bold uppercase tracking-wide hover:bg-burgundy-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isSubmitting ? 'Menyimpan...' : (editingProductId ? 'Update Produk' : 'Simpan Produk')}
-                        </button>
+                        </AnimatedButton>
                       </div>
                     </form>
                   </div>

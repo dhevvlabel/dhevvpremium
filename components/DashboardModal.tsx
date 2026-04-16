@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User as UserType, Order, Product } from '../types';
 import { X, User, Package, Heart, LogOut, Sparkles, ShoppingBag, FileCheck, Hourglass, Settings, Save, Lock, Phone, Zap, Moon } from 'lucide-react';
 import { formatRupiah } from '../constants';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardModalProps {
   isOpen: boolean;

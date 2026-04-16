@@ -12,7 +12,7 @@ import DashboardModal from './components/DashboardModal';
 import QnASection from './components/QnASection';
 import AIChatWidget from './components/AIChatWidget';
 import StoreClosedModal from './components/StoreClosedModal';
-import AnimatedButton from './components/AnimatedButton';
+import AnimatedButton from './components/AnimatedButton.tsx';
 import { Product, CartItem, Order, Category, ToastMessage, User } from './types';
 import { Sparkles, UserPlus, ShoppingBag, QrCode, Upload, MessageCircle, Gift, Box, ChevronDown, Send, Search } from 'lucide-react';
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, User, ArrowRight, ShieldCheck, Phone } from 'lucide-react';
 import { User as UserType } from '../types';
 import { supabase } from '../lib/supabase';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AuthModalProps {
   isOpen: boolean;

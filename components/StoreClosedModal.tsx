@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, MessageCircle, Moon } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface StoreClosedModalProps {
   isOpen: boolean;
