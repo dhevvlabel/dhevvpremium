@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, MessageCircle, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface StoreClosedModalProps {
   isOpen: boolean;
@@ -7,8 +8,6 @@ interface StoreClosedModalProps {
 }
 
 const StoreClosedModal: React.FC<StoreClosedModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
-
   const handleOrderManually = () => {
     const phoneNumber = "6282116505311";
     const message = "Halo Dhevv, aku liat web lagi close order nih. Apakah masih bisa order manual kak?";
@@ -17,15 +16,26 @@ const StoreClosedModal: React.FC<StoreClosedModalProps> = ({ isOpen, onClose }) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-      <div 
-        className="absolute inset-0 bg-white/20 dark:bg-black/40 backdrop-blur-md transition-opacity"
-        onClick={onClose}
-      ></div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-white/20 dark:bg-black/40 backdrop-blur-md transition-opacity"
+            onClick={onClose}
+          ></motion.div>
 
-      <div className="relative w-full max-w-md bg-white/80 dark:bg-[#1a0505]/80 backdrop-blur-2xl border border-burgundy-900/10 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col items-center text-center p-8 animate-in zoom-in-95 duration-500 overflow-hidden">
-        
-        {/* Decorative elements */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="relative w-full max-w-md bg-white/80 dark:bg-[#1a0505]/80 backdrop-blur-2xl border border-burgundy-900/10 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col items-center text-center p-8 overflow-hidden"
+          >
+            
+            {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-30">
           <div className="absolute top-[-20%] left-[-20%] w-40 h-40 bg-indigo-500/30 rounded-full blur-[60px] animate-pulse"></div>
           <div className="absolute bottom-[-20%] right-[-20%] w-40 h-40 bg-purple-500/30 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -66,8 +76,10 @@ const StoreClosedModal: React.FC<StoreClosedModalProps> = ({ isOpen, onClose }) 
             Close
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
+  )}
+</AnimatePresence>
   );
 };
 

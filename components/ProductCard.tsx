@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { formatRupiah } from '../constants';
 import { Product } from '../types';
 import { Heart, ShoppingCart, Zap, Moon } from 'lucide-react';
+import AnimatedButton from './AnimatedButton';
 
 interface ProductCardProps {
   product: Product;
@@ -72,7 +73,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               <p className="text-xs text-burgundy-800/60 dark:text-stone-400 font-medium tracking-wide uppercase">Premium Access</p>
             </div>
           </div>
-          <button 
+          <AnimatedButton 
             onClick={() => toggleWishlist(product.appName)}
             className={`rounded-full p-2.5 transition-all duration-300 ${
               isWishlisted 
@@ -81,7 +82,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }`}
           >
             <Heart size={18} fill={isWishlisted ? "currentColor" : "none"} />
-          </button>
+          </AnimatedButton>
         </div>
         
         {/* Tags */}
@@ -107,7 +108,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         
         <div className="custom-scrollbar max-h-[140px] overflow-y-auto pr-1 space-y-2 mb-2">
           {product.variants.map((variant, idx) => (
-            <button
+            <AnimatedButton
               key={idx}
               onClick={() => setSelectedVariantIdx(idx)}
               className={`w-full text-left p-3 rounded-xl border transition-all duration-300 relative overflow-hidden group/item ${
@@ -131,7 +132,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   </p>
                 </div>
               </div>
-            </button>
+            </AnimatedButton>
           ))}
         </div>
 
@@ -155,17 +156,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         <div className="flex gap-3">
           {/* Add to Cart - Outline Style */}
-          <button
+          <AnimatedButton
             onClick={handleAddToCart}
             className="flex-1 py-3.5 px-3 rounded-xl border border-burgundy-900/30 dark:border-white/20 text-burgundy-900 dark:text-stone-200 font-bold text-xs uppercase tracking-wide hover:bg-burgundy-50 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2 group/add"
             title="Add to Cart"
           >
             <ShoppingCart size={18} className="group-hover/add:scale-110 transition-transform" />
             <span className="hidden sm:inline">Add</span>
-          </button>
+          </AnimatedButton>
 
           {/* Buy Now - Solid Deep Burgundy */}
-          <button
+          <AnimatedButton
             onClick={handleBuyNow}
             className={`flex-[2] py-3.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 group/btn relative overflow-hidden ${
               isStoreOpen 
@@ -190,7 +191,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {isStoreOpen && (
               <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-in-out"></div>
             )}
-          </button>
+          </AnimatedButton>
         </div>
       </div>
 

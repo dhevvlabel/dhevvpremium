@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Product } from '../types';
 import { formatRupiah } from '../constants';
 import { X, Heart, Sparkles } from 'lucide-react';
@@ -18,20 +19,29 @@ const WishlistModal: React.FC<WishlistModalProps> = ({
   allProducts,
   removeFromWishlist
 }) => {
-  if (!isOpen) return null;
-
   const wishlistProducts = allProducts.filter(p => wishlistIds.includes(p.appName));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-       <div 
-        className="absolute inset-0 bg-burgundy-950/40 dark:bg-black/60 backdrop-blur-md transition-opacity"
-        onClick={onClose}
-      ></div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+           <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-burgundy-950/40 dark:bg-black/60 backdrop-blur-md"
+            onClick={onClose}
+          />
 
-      <div className="relative w-full max-w-md max-h-[80vh] bg-stone-50/90 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/10 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-        
-        <div className="flex items-center justify-between p-6 border-b border-burgundy-900/5 dark:border-white/5">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="relative w-full max-w-md max-h-[80vh] bg-stone-50/90 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/10 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+          >
+            
+            <div className="flex items-center justify-between p-6 border-b border-burgundy-900/5 dark:border-white/5">
           <h2 className="text-xl font-bold text-burgundy-950 dark:text-stone-100 flex items-center gap-2 font-serif">
             <Heart className="text-burgundy-700 dark:text-gold-500" fill="currentColor" />
             Curated Favorites
@@ -71,8 +81,10 @@ const WishlistModal: React.FC<WishlistModalProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
+  )}
+</AnimatePresence>
   );
 };
 

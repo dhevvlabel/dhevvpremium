@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ShoppingCart, Moon, Sun, User } from 'lucide-react';
 import { User as UserType } from '../types';
+import AnimatedButton from './AnimatedButton';
 
 interface NavbarProps {
   toggleTheme: () => void;
@@ -55,16 +56,16 @@ const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex items-center gap-2 sm:gap-3">
                   
                   {/* 1. Theme Toggle */}
-                  <button
+                  <AnimatedButton
                     onClick={toggleTheme}
                     className="p-3 rounded-full text-burgundy-900 dark:text-stone-300 hover:bg-burgundy-100/50 dark:hover:bg-white/5 transition-all hover:text-burgundy-700 dark:hover:text-gold-300"
                     aria-label="Toggle Theme"
                   >
                     {isDarkMode ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
-                  </button>
+                  </AnimatedButton>
 
                   {/* 2. Cart / Keranjang */}
-                  <button
+                  <AnimatedButton
                     onClick={openCart}
                     className={`group relative p-3 rounded-full bg-gradient-to-b from-burgundy-800 to-burgundy-950 dark:from-burgundy-900 dark:to-black text-gold-100 shadow-lg shadow-burgundy-900/20 hover:shadow-burgundy-900/40 transition-all duration-300 border border-white/10 ${isBouncing ? 'scale-110 ring-2 ring-gold-500/50' : 'hover:scale-105'}`}
                   >
@@ -74,25 +75,25 @@ const Navbar: React.FC<NavbarProps> = ({
                         {cartCount}
                       </span>
                     )}
-                  </button>
+                  </AnimatedButton>
 
                   {/* 3. Login / Profile (Sekarang Bulat & Senada dengan Keranjang) */}
                   {user ? (
-                     <button 
+                     <AnimatedButton 
                       onClick={openDashboard}
                       className="group relative p-0.5 rounded-full bg-gradient-to-b from-burgundy-800 to-burgundy-950 dark:from-burgundy-900 dark:to-black shadow-lg shadow-burgundy-900/20 hover:shadow-burgundy-900/40 transition-all duration-300 border border-white/10 hover:scale-105"
                     >
                       <div className="h-9 w-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-xs font-bold text-burgundy-950 shadow-inner border border-white/20 overflow-hidden">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
-                    </button>
+                    </AnimatedButton>
                   ) : (
-                    <button 
+                    <AnimatedButton 
                       onClick={openAuth}
                       className="group p-3 rounded-full bg-gradient-to-b from-burgundy-800 to-burgundy-950 dark:from-burgundy-900 dark:to-black text-gold-100 shadow-lg shadow-burgundy-900/20 hover:shadow-burgundy-900/40 transition-all duration-300 border border-white/10 hover:scale-105"
                     >
                       <User size={20} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
-                    </button>
+                    </AnimatedButton>
                   )}
 
                 </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, ShieldAlert, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface TermsModalProps {
   isOpen: boolean;
@@ -7,18 +8,27 @@ interface TermsModalProps {
 }
 
 const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-       <div 
-        className="absolute inset-0 bg-burgundy-950/40 dark:bg-black/60 backdrop-blur-md transition-opacity"
-        onClick={onClose}
-      ></div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-burgundy-950/40 dark:bg-black/60 backdrop-blur-md transition-opacity"
+            onClick={onClose}
+          ></motion.div>
 
-      <div className="relative w-full max-w-lg max-h-[85vh] bg-stone-50/90 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/10 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-        
-        <div className="flex items-center justify-between p-6 border-b border-burgundy-900/5 dark:border-white/5 bg-white/40 dark:bg-white/5">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="relative w-full max-w-lg max-h-[85vh] bg-stone-50/90 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/10 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+          >
+            
+            <div className="flex items-center justify-between p-6 border-b border-burgundy-900/5 dark:border-white/5 bg-white/40 dark:bg-white/5">
           <h2 className="text-xl font-bold text-burgundy-950 dark:text-stone-100 flex items-center gap-2 font-serif">
             <ShieldAlert className="text-burgundy-600 dark:text-gold-500" />
             Terms & Guarantee
@@ -68,8 +78,10 @@ const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose }) => {
             I Acknowledge
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
+  )}
+</AnimatePresence>
   );
 };
 

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CartItem, Order, User, Voucher } from '../types';
 import { formatRupiah } from '../constants';
-import { X, MessageCircle, ShieldCheck, User as UserIcon, Receipt, Clock, Hash, Upload, Image as ImageIcon, Trash2, ArrowLeft, CheckSquare, Square, ShoppingBag, Minus, Plus, AlertCircle, Timer, Phone, Send, CheckCircle, Sparkles, Lock, Mail, Moon, Tag, Download } from 'lucide-react';
+import { X, MessageCircle, ShieldCheck, User as UserIcon, Receipt, Clock, Hash, Upload, Image as ImageIcon, Trash2, ArrowLeft, CheckSquare, Square, ShoppingBag, Minus, Plus, AlertCircle, Timer, Phone, Send, CheckCircle, Sparkles, Lock, Mail, Moon, Tag, Copy } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { motion, AnimatePresence } from 'motion/react';
+import AnimatedButton from './AnimatedButton';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -119,8 +121,6 @@ const CartModal: React.FC<CartModalProps> = ({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  if (!isOpen) return null;
-
   const toggleSelection = (id: string) => {
     const newSelected = new Set(selectedIds);
     if (newSelected.has(id)) {
@@ -153,6 +153,7 @@ const CartModal: React.FC<CartModalProps> = ({
       discount = (subtotal * appliedVoucher.value) / 100;
     }
   }
+
   const total = Math.max(0, subtotal - discount);
   
   const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -290,6 +291,7 @@ const CartModal: React.FC<CartModalProps> = ({
               email: user.email,
               customerName: customerName,
               phoneNumber: customerPhone || '-',
+              accountDetails: "Akan dikirimkan oleh admin melalui WhatsApp",
               products: formattedProducts,
               voucher: appliedVoucher ? {
                 code: appliedVoucher.code,
@@ -409,11 +411,28 @@ ${productDetails}
     }
   };
 
-  if (step === 'success') {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-        <div className="absolute inset-0 bg-white/10 dark:bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
-        <div className="relative w-full max-w-sm bg-white dark:bg-[#1a0505] rounded-3xl shadow-2xl p-8 flex flex-col items-center text-center animate-in zoom-in-95 duration-500 overflow-hidden">
+  return (
+    <AnimatePresence mode="wait">
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
+          {/* Overlay Backdrop */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-white/10 dark:bg-black/40 backdrop-blur-sm transition-opacity"
+            onClick={onClose}
+          ></motion.div>
+
+          {step === 'success' ? (
+            <motion.div 
+              key="success-step"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              className="relative w-full max-w-sm bg-white dark:bg-[#1a0505] rounded-3xl shadow-2xl p-8 flex flex-col items-center text-center overflow-hidden"
+            >
              <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-30">
                 <div className="absolute top-[-20%] left-[-20%] w-40 h-40 bg-gold-500/40 rounded-full blur-[60px] animate-pulse"></div>
                 <div className="absolute bottom-[-20%] right-[-20%] w-40 h-40 bg-burgundy-500/40 rounded-full blur-[60px] animate-pulse"></div>
@@ -434,21 +453,21 @@ ${productDetails}
                     <span>Struk pembelian telah dikirim ke email <b>{user.email}</b> (Periksa folder spam!)</span>
                   </div>
                 )}
-                <button onClick={onClose} className="w-full py-3.5 rounded-xl bg-burgundy-950 dark:bg-stone-100 text-stone-100 dark:text-burgundy-950 font-bold uppercase tracking-wide hover:shadow-lg hover:-translate-y-0.5 transition-all">Tutup</button>
+                <AnimatedButton onClick={onClose} className="w-full py-3.5 rounded-xl bg-burgundy-950 dark:bg-stone-100 text-stone-100 dark:text-burgundy-950 font-bold uppercase tracking-wide hover:shadow-lg hover:-translate-y-0.5 transition-all">Tutup</AnimatedButton>
             </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === 'cart') {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-        <div className="absolute inset-0 bg-white/10 dark:bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
-        <div className="relative w-full max-w-lg max-h-[90vh] bg-stone-50/95 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/30 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+          </motion.div>
+          ) : step === 'cart' ? (
+          <motion.div 
+            key="cart-step"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="relative w-full max-w-lg max-h-[90vh] bg-stone-50/95 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/30 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+          >
           <div className="flex items-center justify-between p-5 border-b border-burgundy-900/5 dark:border-white/5 bg-white/40 dark:bg-white/5">
              <h2 className="text-xl font-bold text-burgundy-950 dark:text-stone-100 flex items-center gap-2 font-serif"><ShoppingBag className="text-burgundy-700 dark:text-gold-500" />Shopping Cart</h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-stone-500"><X size={20} /></button>
+            <AnimatedButton onClick={onClose} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-stone-500"><X size={20} /></AnimatedButton>
           </div>
           <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
             {cart.length === 0 ? (
@@ -468,9 +487,9 @@ ${productDetails}
                    const isSelected = selectedIds.has(item.id);
                    return (
                      <div key={item.id} className={`flex items-start gap-3 p-3 rounded-xl transition-all border ${isSelected ? 'bg-burgundy-50 dark:bg-burgundy-900/20 border-burgundy-900/20 dark:border-gold-500/30' : 'bg-white/50 dark:bg-white/5 border-transparent'}`}>
-                       <button onClick={() => toggleSelection(item.id)} className="mt-1 text-burgundy-800 dark:text-gold-500 hover:scale-110 transition-transform">
+                       <AnimatedButton onClick={() => toggleSelection(item.id)} className="mt-1 text-burgundy-800 dark:text-gold-500 hover:scale-110 transition-transform">
                           {isSelected ? <CheckSquare size={20} /> : <Square size={20} className="text-stone-300 dark:text-stone-600" />}
-                       </button>
+                       </AnimatedButton>
                        <div className="h-16 w-16 rounded-lg bg-stone-200 dark:bg-black/40 flex-shrink-0 flex items-center justify-center font-serif font-bold text-burgundy-900 dark:text-stone-400 text-xl">{item.product.appName.charAt(0)}</div>
                        <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-burgundy-950 dark:text-stone-100 truncate">{item.product.appName}</h4>
@@ -496,7 +515,7 @@ ${productDetails}
               <span className="text-xs font-bold text-stone-500 uppercase">Selected Total</span>
               <span className="text-xl font-bold text-burgundy-950 dark:text-gold-400">{formatRupiah(subtotal)}</span>
             </div>
-            <button 
+            <AnimatedButton 
               onClick={() => {
                 if (!isStoreOpen) {
                   onClose();
@@ -513,27 +532,26 @@ ${productDetails}
               }`}
             >
               {isStoreOpen ? `Checkout (${selectedIds.size})` : <><Moon size={18} /> Store Closed</>}
-            </button>
+            </AnimatedButton>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // --- RENDER: INVOICE/PAYMENT STEP ---
-  if (step === 'invoice' || step === 'payment') {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-        <div className="absolute inset-0 bg-white/10 dark:bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
-        <div className="relative w-full max-w-md max-h-[90vh] bg-stone-50/95 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/30 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right-10 duration-300">
+        </motion.div>
+          ) : (
+          <motion.div 
+            key="invoice-payment-step"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="relative w-full max-w-md max-h-[90vh] bg-stone-50/95 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/30 dark:border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+          >
           <div className="flex items-center justify-between p-5 border-b border-burgundy-900/10 dark:border-white/10 bg-gradient-to-r from-burgundy-100/50 to-stone-100/50 dark:from-burgundy-950/50 dark:to-black/50">
             <div className="flex items-center gap-3">
               {step === 'payment' && (
-                <button onClick={() => setStep('invoice')} className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"><ArrowLeft size={18} className="text-burgundy-900 dark:text-stone-300" /></button>
+                <AnimatedButton onClick={() => setStep('invoice')} className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"><ArrowLeft size={18} className="text-burgundy-900 dark:text-stone-300" /></AnimatedButton>
               )}
               <div><h2 className="text-lg font-bold text-burgundy-900 dark:text-stone-100 flex items-center gap-2 font-serif tracking-wide"><Receipt size={18} className="text-burgundy-700 dark:text-gold-500" />{step === 'invoice' ? 'ORDER DETAILS' : 'PAYMENT'}</h2></div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-stone-500"><X size={20} /></button>
+            <AnimatedButton onClick={onClose} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-stone-500"><X size={20} /></AnimatedButton>
           </div>
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {step === 'invoice' ? (
@@ -678,9 +696,9 @@ ${productDetails}
                   </label>
                 </div>
                 
-                <button onClick={() => setStep('payment')} disabled={!isTermsAccepted} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-burgundy-950 to-burgundy-800 text-white font-bold uppercase tracking-wide hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-burgundy-900/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <AnimatedButton onClick={() => setStep('payment')} disabled={!isTermsAccepted} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-burgundy-950 to-burgundy-800 text-white font-bold uppercase tracking-wide hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-burgundy-900/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   Lanjut Pembayaran
-                </button>
+                </AnimatedButton>
               </>
             ) : (
               <>
@@ -690,56 +708,92 @@ ${productDetails}
                   <div className="space-y-2">
                     {/* QRIS */}
                     <div className="border border-stone-200 dark:border-white/10 rounded-xl overflow-hidden">
-                      <button onClick={() => { setOpenDropdown(openDropdown === 'QRIS' ? null : 'QRIS'); setSelectedPaymentMethod('QRIS'); }} className="w-full p-4 flex justify-between items-center bg-white dark:bg-white/5">
+                      <AnimatedButton onClick={() => { setOpenDropdown(openDropdown === 'QRIS' ? null : 'QRIS'); setSelectedPaymentMethod('QRIS'); }} className="w-full p-4 flex justify-between items-center bg-white dark:bg-white/5">
                         <span className="font-bold text-sm text-burgundy-900 dark:text-stone-200">QRIS</span>
                         {openDropdown === 'QRIS' ? <Minus size={16} /> : <Plus size={16} />}
-                      </button>
-                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === 'QRIS' ? 'max-h-[500px]' : 'max-h-0'}`}>
-                        <div className="p-4 bg-stone-50 dark:bg-black/20">
-                          <img src="https://user5703.na.imgto.link/public/20260403/img-4515-2.avif" alt="QRIS" className="w-full rounded-lg" />
-                        </div>
-                      </div>
+                      </AnimatedButton>
+                      <AnimatePresence>
+                        {openDropdown === 'QRIS' && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                            className="overflow-hidden bg-stone-50 dark:bg-black/20"
+                          >
+                            <div className="p-4 flex flex-col items-center">
+                              <img 
+                                src="https://user5703.na.imgto.link/public/20260403/img-4515-2.avif" 
+                                alt="QRIS" 
+                                className="w-full max-w-[280px] rounded-lg shadow-xl" 
+                                loading="lazy"
+                              />
+                              <p className="text-[10px] text-stone-500 mt-2 text-center italic">Tip: Screenshot dan scan menggunakan aplikasi e-wallet pilihan Anda</p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                     {/* BANK */}
                     <div className="border border-stone-200 dark:border-white/10 rounded-xl overflow-hidden">
-                      <button onClick={() => { setOpenDropdown(openDropdown === 'BANK' ? null : 'BANK'); setSelectedPaymentMethod('BANK'); }} className="w-full p-4 flex justify-between items-center bg-white dark:bg-white/5">
+                      <AnimatedButton onClick={() => { setOpenDropdown(openDropdown === 'BANK' ? null : 'BANK'); setSelectedPaymentMethod('BANK'); }} className="w-full p-4 flex justify-between items-center bg-white dark:bg-white/5">
                         <span className="font-bold text-sm text-burgundy-900 dark:text-stone-200">BANK (Atas Nama: DAFFA RAMDHANI)</span>
                         {openDropdown === 'BANK' ? <Minus size={16} /> : <Plus size={16} />}
-                      </button>
-                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === 'BANK' ? 'max-h-[500px]' : 'max-h-0'}`}>
-                        <div className="p-4 bg-stone-50 dark:bg-black/20 space-y-2">
-                          {[
-                            { name: 'SeaBank', number: '901015694859' },
-                            { name: 'Jago', number: '100933124734' },
-                            { name: 'BNI', number: '2044771467' }
-                          ].map(bank => (
-                            <div key={bank.name} className="flex justify-between items-center text-sm">
-                              <span className="text-stone-600 dark:text-stone-400">{bank.name}: {bank.number}</span>
-                              <button onClick={() => copyToClipboard(bank.number)} className="p-1.5 hover:bg-stone-200 dark:hover:bg-white/10 rounded"><Download size={14} /></button>
+                      </AnimatedButton>
+                      <AnimatePresence>
+                        {openDropdown === 'BANK' && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                            className="overflow-hidden bg-stone-50 dark:bg-black/20"
+                          >
+                            <div className="p-4 space-y-2">
+                              {[
+                                { name: 'SeaBank', number: '901015694859' },
+                                { name: 'Jago', number: '100933124734' },
+                                { name: 'BNI', number: '2044771467' }
+                              ].map(bank => (
+                                <div key={bank.name} className="flex justify-between items-center text-sm">
+                                  <span className="text-stone-600 dark:text-stone-400">{bank.name}: {bank.number}</span>
+                                  <AnimatedButton onClick={() => copyToClipboard(bank.number)} className="p-1.5 hover:bg-stone-200 dark:hover:bg-white/10 rounded"><Copy size={14} /></AnimatedButton>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                     {/* E-WALLET */}
                     <div className="border border-stone-200 dark:border-white/10 rounded-xl overflow-hidden">
-                      <button onClick={() => { setOpenDropdown(openDropdown === 'E-WALLET' ? null : 'E-WALLET'); setSelectedPaymentMethod('E-WALLET'); }} className="w-full p-4 flex justify-between items-center bg-white dark:bg-white/5">
+                      <AnimatedButton onClick={() => { setOpenDropdown(openDropdown === 'E-WALLET' ? null : 'E-WALLET'); setSelectedPaymentMethod('E-WALLET'); }} className="w-full p-4 flex justify-between items-center bg-white dark:bg-white/5">
                         <span className="font-bold text-sm text-burgundy-900 dark:text-stone-200">E-WALLET (Atas Nama: DAFFA RAMDHANI)</span>
                         {openDropdown === 'E-WALLET' ? <Minus size={16} /> : <Plus size={16} />}
-                      </button>
-                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === 'E-WALLET' ? 'max-h-[500px]' : 'max-h-0'}`}>
-                        <div className="p-4 bg-stone-50 dark:bg-black/20 space-y-2">
-                          {[
-                            { name: 'Dana', number: '082116505311' },
-                            { name: 'Gopay', number: '082116505311' }
-                          ].map(ewallet => (
-                            <div key={ewallet.name} className="flex justify-between items-center text-sm">
-                              <span className="text-stone-600 dark:text-stone-400">{ewallet.name}: {ewallet.number}</span>
-                              <button onClick={() => copyToClipboard(ewallet.number)} className="p-1.5 hover:bg-stone-200 dark:hover:bg-white/10 rounded"><Download size={14} /></button>
+                      </AnimatedButton>
+                      <AnimatePresence>
+                        {openDropdown === 'E-WALLET' && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                            className="overflow-hidden bg-stone-50 dark:bg-black/20"
+                          >
+                            <div className="p-4 space-y-2">
+                              {[
+                                { name: 'Dana', number: '082116505311' },
+                                { name: 'Gopay', number: '082116505311' }
+                              ].map(ewallet => (
+                                <div key={ewallet.name} className="flex justify-between items-center text-sm">
+                                  <span className="text-stone-600 dark:text-stone-400">{ewallet.name}: {ewallet.number}</span>
+                                  <AnimatedButton onClick={() => copyToClipboard(ewallet.number)} className="p-1.5 hover:bg-stone-200 dark:hover:bg-white/10 rounded"><Copy size={14} /></AnimatedButton>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 </div>
@@ -756,7 +810,7 @@ ${productDetails}
                   <label htmlFor="paymentConfirmed" className="text-xs text-stone-600 dark:text-stone-400 cursor-pointer">Saya telah melakukan pembayaran</label>
                 </div>
 
-                <button onClick={handleConfirmOrder} disabled={isSending || !paymentProof || !isPaymentConfirmed} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-burgundy-950 to-burgundy-800 text-white font-bold uppercase tracking-wide hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-burgundy-900/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <AnimatedButton onClick={handleConfirmOrder} disabled={isSending || !paymentProof || !isPaymentConfirmed} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-burgundy-950 to-burgundy-800 text-white font-bold uppercase tracking-wide hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-burgundy-900/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {isSending ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -767,21 +821,30 @@ ${productDetails}
                       <Send size={18} /> Konfirmasi Pesanan
                     </>
                   )}
-                </button>
+                </AnimatedButton>
               </>
             )}
           </div>
-          
-          {/* TOAST */}
-          {toastMessage && (
-            <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-burgundy-950 text-white px-4 py-2 rounded-full text-xs font-bold z-[60] animate-in fade-in slide-in-from-bottom-4">
-              {toastMessage}
-            </div>
+        </motion.div>
           )}
+
+          {/* TOAST notification inside the same fixed container */}
+          <AnimatePresence>
+            {toastMessage && (
+              <motion.div 
+                initial={{ opacity: 0, y: 50, x: '-50%' }}
+                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                exit={{ opacity: 0, y: 50, x: '-50%' }}
+                className="fixed bottom-20 left-1/2 bg-burgundy-950 text-white px-4 py-2 rounded-full text-[10px] font-bold z-[60] shadow-xl border border-gold-500/20"
+              >
+                {toastMessage}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
-    );
-  }
+      )}
+    </AnimatePresence>
+  );
 };
 
 export default CartModal;

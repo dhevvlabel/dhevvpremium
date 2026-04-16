@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User as UserType, Order, Product } from '../types';
 import { X, User, Package, Heart, LogOut, Sparkles, ShoppingBag, FileCheck, Hourglass, Settings, Save, Lock, Phone, Zap, Moon } from 'lucide-react';
 import { formatRupiah } from '../constants';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface DashboardModalProps {
   isOpen: boolean;
@@ -49,8 +50,6 @@ const DashboardModal: React.FC<DashboardModalProps> = ({
     }
   }, [user]);
 
-  if (!isOpen) return null;
-
   const wishlistProducts = allProducts.filter(p => wishlist.includes(p.appName));
 
   const handleSaveSettings = (e: React.FormEvent) => {
@@ -69,16 +68,27 @@ const DashboardModal: React.FC<DashboardModalProps> = ({
   const totalSpent = orders.reduce((sum, order) => sum + order.total, 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Overlay Backdrop */}
-      <div 
-        className="absolute inset-0 bg-white/5 dark:bg-black/20 backdrop-blur-md transition-opacity"
-        onClick={onClose}
-      ></div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Overlay Backdrop */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-white/5 dark:bg-black/20 backdrop-blur-md"
+            onClick={onClose}
+          />
 
-      <div className="relative w-full max-w-5xl h-[85vh] bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-[40px] shadow-2xl flex overflow-hidden animate-in zoom-in-95 duration-300">
-        
-        {/* Sidebar */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="relative w-full max-w-5xl h-[85vh] bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-[40px] shadow-2xl flex overflow-hidden"
+          >
+            
+            {/* Sidebar */}
         <div className="w-20 md:w-64 bg-white/30 dark:bg-black/40 border-r border-white/10 flex flex-col backdrop-blur-md">
           <div className="p-6 flex items-center gap-3 border-b border-white/10">
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-burgundy-950 font-bold shadow-lg shrink-0">
@@ -359,8 +369,10 @@ const DashboardModal: React.FC<DashboardModalProps> = ({
 
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
+  )}
+</AnimatePresence>
   );
 };
 

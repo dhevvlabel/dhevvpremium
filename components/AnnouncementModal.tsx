@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Sparkles, Rocket } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface AnnouncementModalProps {
   isOpen: boolean;
@@ -9,19 +10,28 @@ interface AnnouncementModalProps {
 }
 
 const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ isOpen, onClose, type, userName }) => {
-  if (!isOpen) return null;
-
   const isRegister = type === 'register';
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      ></div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={onClose}
+          ></motion.div>
 
-      <div className="relative w-full max-w-lg bg-white dark:bg-[#1a0505] rounded-3xl shadow-2xl border border-gold-500/30 overflow-hidden animate-blob-in">
-        {/* Confetti / Decorative BG */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="relative w-full max-w-lg bg-white dark:bg-[#1a0505] rounded-3xl shadow-2xl border border-gold-500/30 overflow-hidden"
+          >
+            {/* Confetti / Decorative BG */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
             <div className="absolute top-[-20%] left-[-20%] w-64 h-64 bg-gold-500 rounded-full blur-[80px]"></div>
             <div className="absolute bottom-[-20%] right-[-20%] w-64 h-64 bg-burgundy-500 rounded-full blur-[80px]"></div>
@@ -82,8 +92,10 @@ const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ isOpen, onClose, 
             {isRegister ? 'Mulai Belanja' : 'Lanjut Belanja'}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
+  )}
+</AnimatePresence>
   );
 };
 

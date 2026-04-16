@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, User, ArrowRight, ShieldCheck, Phone } from 'lucide-react';
 import { User as UserType } from '../types';
 import { supabase } from '../lib/supabase';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,8 +17,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
-
-  if (!isOpen) return null;
 
   const sendTelegramNotification = (name: string, email: string, phone: string) => {
     // GANTI BAGIAN INI: Pakai token Visitor/Database lo
@@ -142,16 +141,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-      {/* CHANGED: Transparan Blur Background (Menyesuaikan CartModal) */}
-      <div 
-        className="absolute inset-0 bg-white/10 dark:bg-black/40 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      ></div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
+          {/* CHANGED: Transparan Blur Background (Menyesuaikan CartModal) */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-white/10 dark:bg-black/40 backdrop-blur-sm transition-opacity"
+            onClick={onClose}
+          ></motion.div>
 
-      <div className="relative w-full max-w-md bg-stone-50/95 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/20 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-        
-        {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="relative w-full max-w-md bg-stone-50/95 dark:bg-[#1a0505]/95 backdrop-blur-2xl border border-burgundy-900/20 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden"
+          >
+            
+            {/* Header */}
         <div className="relative h-32 bg-gradient-to-br from-burgundy-900 to-black flex flex-col items-center justify-center text-white">
            <button 
             onClick={onClose}
@@ -254,9 +264,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
             </p>
           </div>
         </div>
-
-      </div>
+      </motion.div>
     </div>
+  )}
+</AnimatePresence>
   );
 };
 
