@@ -282,7 +282,7 @@ const CartModal: React.FC<CartModalProps> = ({
       // 2. Send Email Receipt (Via Vercel Serverless Function)
       const sendEmailReceipt = async () => {
         try {
-          await fetch('/api/send-receipt', {
+          const response = await fetch('/api/send-receipt', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -298,6 +298,13 @@ const CartModal: React.FC<CartModalProps> = ({
               total: formatRupiah(total)
             })
           });
+          
+          const result = await response.json();
+          if (!response.ok) {
+            console.error('Email receipt failed:', result);
+          } else {
+            console.log('Email receipt sent successfully:', result.data);
+          }
         } catch (error) {
           console.error('Error sending email receipt:', error);
         }

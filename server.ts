@@ -5,7 +5,7 @@ import { Resend } from "resend";
 import dotenv from "dotenv";
 import { supabase } from "./lib/supabase.ts";
 
-dotenv.config();
+dotenv.config({ override: true });
 
 async function startServer() {
   const app = express();
@@ -91,15 +91,18 @@ async function startServer() {
 
   app.post("/api/send-receipt", async (req, res) => {
     try {
-      const { orderId, email, customerName, phoneNumber, accountDetails, orderDate, products, voucher, total } = req.body;
+      const { orderId, email, customerName, phoneNumber, accountDetails = "-", products, voucher, total } = req.body;
 
-      const resendKey = process.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY;
+      if (!email || !orderId) {
+        return res.status(400).json({ error: "Email and Order ID are required" });
+      }
+
+      const resendKey = (process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY || "").trim();
       if (!resendKey) {
-        return res.status(500).json({ error: "VITE_RESEND_API_KEY is not configured" });
+        return res.status(500).json({ error: "Resend API Key is not configured" });
       }
 
       const resend = new Resend(resendKey);
-      
       const transactionTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long' });
 
       const productRows = products.map((p: any) => `
@@ -204,14 +207,14 @@ async function startServer() {
       });
 
       if (error) {
-        console.error("Resend error:", error);
-        return res.status(400).json({ error });
+        console.error("Resend Error:", error);
+        return res.status(400).json({ error: error.message });
       }
 
-      res.status(200).json({ data });
-    } catch (error) {
-      console.error("Server error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(200).json({ success: true, id: data?.id });
+    } catch (error: any) {
+      console.error("Server Error:", error);
+      res.status(500).json({ error: error.message || "Internal server error" });
     }
   });
 
