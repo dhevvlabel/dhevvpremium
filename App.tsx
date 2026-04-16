@@ -12,6 +12,7 @@ import DashboardModal from './components/DashboardModal';
 import QnASection from './components/QnASection';
 import AIChatWidget from './components/AIChatWidget';
 import StoreClosedModal from './components/StoreClosedModal';
+import AnimatedButton from './components/AnimatedButton';
 import { Product, CartItem, Order, Category, ToastMessage, User } from './types';
 import { Sparkles, UserPlus, ShoppingBag, QrCode, Upload, MessageCircle, Gift, Box, ChevronDown, Send, Search } from 'lucide-react';
 
@@ -461,7 +462,7 @@ useEffect(() => {
           {/* PURCHASE PROCESS / TUTORIAL SECTION (ACCORDION) */}
           <div className="w-full max-w-4xl mx-auto mb-6 relative z-20 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500 fill-mode-backwards">
             {/* Trigger Bar */}
-            <button 
+            <AnimatedButton 
                 onClick={() => setIsTutorialOpen(!isTutorialOpen)}
                 className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/40 dark:bg-burgundy-950/40 backdrop-blur-xl border border-burgundy-900/10 dark:border-white/10 shadow-lg hover:shadow-xl hover:bg-white/50 dark:hover:bg-burgundy-900/50 transition-all group"
             >
@@ -477,7 +478,7 @@ useEffect(() => {
                 <div className={`p-2 rounded-full bg-white/50 dark:bg-white/10 transition-transform duration-500 ${isTutorialOpen ? 'rotate-180 bg-gold-100 dark:bg-gold-900/20 text-gold-700 dark:text-gold-400' : 'text-burgundy-900 dark:text-stone-300'}`}>
                     <ChevronDown size={20} />
                 </div>
-            </button>
+            </AnimatedButton>
 
             {/* Collapsible Content */}
             <div className={`overflow-hidden transition-all duration-700 ease-in-out ${isTutorialOpen ? 'max-h-[800px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
@@ -525,7 +526,7 @@ useEffect(() => {
         {/* Category Filters */}
         <div className="flex flex-wrap justify-center gap-3 mb-10 relative z-10">
           {CATEGORIES.map(cat => (
-            <button
+            <AnimatedButton
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 border backdrop-blur-md ${
@@ -535,7 +536,7 @@ useEffect(() => {
               }`}
             >
               {cat}
-            </button>
+            </AnimatedButton>
           ))}
         </div>
 
@@ -567,12 +568,12 @@ useEffect(() => {
                <Sparkles size={32} />
             </div>
             <p className="text-burgundy-900/50 dark:text-stone-500 text-lg">Maaf, produk tidak ditemukan. Coba kata kunci lain ya!</p>
-            <button 
+            <AnimatedButton 
               onClick={() => {setSearchQuery(''); setSelectedCategory('All');}}
               className="mt-4 text-burgundy-700 dark:text-gold-500 hover:underline font-medium"
             >
               Clear Filters
-            </button>
+            </AnimatedButton>
           </div>
         )}
       </main>
