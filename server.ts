@@ -4,6 +4,7 @@ import path from "path";
 import { Resend } from "resend";
 import dotenv from "dotenv";
 import { supabase } from "./lib/supabase.ts";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config({ override: true });
 
@@ -16,6 +17,55 @@ async function startServer() {
   // API routes FIRST
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  app.post("/api/ai/chat", async (req, res) => {
+    try {
+      const { messages, systemInstruction } = req.body;
+      
+      const geminiKey = (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || "").replace(/['"]/g, '').trim();
+
+      if (!geminiKey) {
+        return res.status(401).json({ error: "Gemini API Key belum dikonfigurasi di server lokal." });
+      }
+
+      try {
+        const ai = new GoogleGenAI({ apiKey: geminiKey });
+
+        const history = (messages || []).map((m: any) => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: history,
+          config: {
+            systemInstruction: systemInstruction || "Anda adalah asisten virtual Dhevv Premium.",
+            maxOutputTokens: 1024,
+            temperature: 0.7
+          }
+        });
+
+        const responseText = response.text;
+
+        if (responseText) {
+          return res.status(200).json({
+            choices: [{
+              message: { content: responseText }
+            }]
+          });
+        }
+        
+        throw new Error("Empty response from Gemini");
+      } catch (err: any) {
+        console.error("Server Gemini Error:", err);
+        return res.status(500).json({ error: `AI Failure: ${err.message}` });
+      }
+    } catch (error: any) {
+      console.error("Server AI Chat Error:", error);
+      res.status(500).json({ error: error.message || "Internal server error" });
+    }
   });
 
   app.post("/api/create-payment", async (req, res) => {
@@ -200,15 +250,18 @@ async function startServer() {
       `;
 
       const { data, error } = await resend.emails.send({
-        from: "Dhevv Premium <admin@dhevvpremium.shop>",
-        to: email,
+        from: "admin@dhevvpremium.shop",
+        to: email, // Changed from array to string
         subject: `Struk Pembelian ${orderId} - Dhevv Premium`,
         html: htmlTemplate,
       });
 
       if (error) {
-        console.error("Resend Error:", error);
-        return res.status(400).json({ error: error.message });
+        console.error("Resend Error Detail:", JSON.stringify(error, null, 2));
+        return res.status(400).json({ 
+          error: error.message || "Email validation failed.",
+          raw: error
+        });
       }
 
       res.status(200).json({ success: true, id: data?.id });
