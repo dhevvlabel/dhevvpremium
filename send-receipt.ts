@@ -1,29 +1,28 @@
 import { Resend } from 'resend';
 
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
 };
 
-export default async function handler(req: Request) {
+export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { orderId, email, customerName, phoneNumber, products, voucher, total } = await req.json();
+    const { orderId, email, customerName, phoneNumber, accountDetails = "-", products, voucher, total } = req.body;
 
-    const resendKey = process.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY;
+    if (!email || !orderId) {
+      return res.status(400).json({ error: "Email and Order ID are required" });
+    }
+
+    const resendKey = (process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY || "").replace(/['"]/g, '').trim();
     if (!resendKey) {
-      return new Response(JSON.stringify({ error: 'RESEND_API_KEY is not configured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(500).json({ error: "Resend API Key is not configured" });
     }
 
     const resend = new Resend(resendKey);
+    const targetEmail = (email || "").trim();
     const transactionTime = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long' });
 
     const productRows = products.map((p: any) => `
@@ -87,7 +86,7 @@ export default async function handler(req: Request) {
 
           <div class="section">
             <div class="section-title">Detail Akun</div>
-            <div class="info-row"><span class="value">Akan dikirimkan oleh admin melalui WhatsApp</span></div>
+            <div class="info-row"><span class="value">${accountDetails}</span></div>
           </div>
 
           <div class="section">
@@ -121,27 +120,23 @@ export default async function handler(req: Request) {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: "Dhevv Premium <admin@dhevvpremium.shop>",
-      to: [email],
-      subject: `Invoice Pembelian #${orderId} - Dhevv Premium`,
-      html: htmlTemplate
+      from: "admin@dhevvpremium.shop",
+      to: [targetEmail], 
+      subject: `Struk Pembelian ${orderId} - Dhevv Premium`,
+      html: htmlTemplate,
     });
 
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
+      console.error("Resend Error Detail:", JSON.stringify(error, null, 2));
+      return res.status(400).json({ 
+        error: error.message || "Resend validation failed. Pastikan domain Kakak sudah berstatus 'Verified' di Dashboard Resend.",
+        raw: error
       });
     }
 
-    return new Response(JSON.stringify({ success: true, data }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(200).json({ success: true, id: data?.id });
+  } catch (error: any) {
+    console.error("Server Error:", error);
+    res.status(500).json({ error: error.message || "Internal server error" });
   }
 }
