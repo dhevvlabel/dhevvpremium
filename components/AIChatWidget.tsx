@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, ArrowLeft } from 'lucide-react';
+import { MessageCircle, X, Send, Bot } from 'lucide-react';
 import { formatRupiah } from '../constants';
 import { Product } from '../types';
 import Groq from "groq-sdk";
@@ -29,7 +29,7 @@ const AIChatWidget: React.FC<{ products: Product[] }> = ({ products }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fungsi buat bikin teks **Bold** jadi nyata (Render Markdown sederhana)
+  // Fungsi Render Bold (Biar bintang ** hilang dan jadi teks tebal)
   const renderMessage = (text: string) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, index) => {
@@ -47,24 +47,15 @@ const AIChatWidget: React.FC<{ products: Product[] }> = ({ products }) => {
       ).join('\n');
     }).join('\n');
 
-    return `Kamu adalah Dhevv AI, asisten pribadi dari Dhevv Premium. 
+    return `Kamu Dhevv AI, asisten chill Dhevv Premium. 
+    ATURAN:
+    1. Gaya bahasa: Gen Z, santai, tapi tetep sopan.
+    2. Panggilan: 'Kak' atau 'Kakak' (Maksimal 2x dalam satu jawaban, jangan tiap kalimat).
+    3. JANGAN JADI WIKIPEDIA: Jangan jelasin definisi Netflix/Spotify kalau gak ditanya.
+    4. DATA HARGA: Gunakan data di bawah ini. Jangan nyuruh cek web resmi aplikasi lain.
+    5. Jika user tanya varian, spill semua opsinya dari data ini:
     
-    CORE RULES (WAJIB):
-    1. JANGAN JADI WIKIPEDIA: Jangan jelasin apa itu Netflix/Spotify kalau gak ditanya. User udah tau!
-    2. TETAP DI JALUR: Kalau user bilang 'hah' atau 'apa sih', artinya jawaban kamu sebelumnya nggak jelas atau kebanyakan omong. Minta maaf singkat dan tanya balik mau cari apa.
-    3. DATA ADALAH TUHAN: Hanya gunakan harga dari daftar di bawah. Jangan pernah nyuruh cek web lain.
-    4. GAYA GEN Z LUXURY: Santai tapi elegan. Pake 'Kak'. Hindari pengulangan kata 'nih' di setiap kalimat.
-    
-    CARA MERESPON:
-    - User minta produk -> Spill variannya sesuai data, tawarin mana yang cocok.
-    - User bingung -> Tanya pelan-pelan mau buat nonton di HP atau TV.
-    - User nyela/protes -> Langsung sesuaikan gaya bicara, jangan kaku!
-
-    DAFTAR STOK & HARGA KITA:
-    ${productContext}
-
-    Contoh gaya bahasa:
-    'Eh sorry Kak kalau tadi belibet. Maksud aku, buat Netflix kita ada paket Sharing mulai **Rp 4.500** aja. Mau yang buat sehari atau langsung seminggu nih biar puas?'`;
+    ${productContext}`;
   };
 
   const groq = React.useMemo(() => {
@@ -98,25 +89,54 @@ const AIChatWidget: React.FC<{ products: Product[] }> = ({ products }) => {
     setIsTyping(true);
 
     try {
+      // Menyiapkan history chat untuk dikirim ke Groq
+      const groqMessages = [
+        { role: "system", content: getSystemInstruction() },
+        ...messages.filter(m => m.id !== 'welcome').map(m => ({
+          role: m.sender === 'user' ? "user" : "assistant",
+          content: m.text,
+        })),
+        { role: "user", content: userText }
+      ];
+
       const completion = await groq.chat.completions.create({
-  messages: groqMessages,
-  model: "llama-3.3-70b-versatile",
-  temperature: 0.6, // Ganti ke 0.6 ya Daf
-  max_tokens: 500,  // Dipendekin aja biar gak kepanjangan curhatnya
-});
+        messages: groqMessages as any,
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.6,
+        max_tokens: 500,
+      });
 
       const botText = completion.choices[0]?.message?.content || "Duh, lagi pusing nih. Coba lagi ya Kak!";
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: botText, sender: 'bot', timestamp: new Date() }]);
+
     } catch (error: any) {
-      setMessages(prev => [...prev, { id: 'err', text: "Lagi error nih koneksinya, coba bentar lagi ya Kak!", sender: 'bot', timestamp: new Date() }]);
-    } finally { setIsTyping(false); }
+      console.error("Chat Error:", error);
+      setMessages(prev => [...prev, { 
+        id: 'err-' + Date.now(), 
+        text: "Lagi error nih koneksinya, coba bentar lagi ya Kak!", 
+        sender: 'bot', 
+        timestamp: new Date() 
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
     <>
       {!isOpen && (
-        <button onClick={() => setIsOpen(true)} className="fixed bottom-5 right-5 z-[50] h-14 w-14 rounded-full bg-burgundy-900 shadow-lg flex items-center justify-center border border-white/20">
+        <button
+          onClick={() => setIsOpen(true)}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="fixed bottom-5 right-5 z-[50] h-14 w-14 rounded-full bg-burgundy-900 shadow-lg flex items-center justify-center border border-white/20"
+        >
           <MessageCircle className="text-white" size={28} />
+          {isHovered && (
+            <div className="absolute right-16 bg-white text-burgundy-900 px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap shadow-md">
+              Chat Dhevv AI 👋
+            </div>
+          )}
         </button>
       )}
 
@@ -127,22 +147,34 @@ const AIChatWidget: React.FC<{ products: Product[] }> = ({ products }) => {
             <div className="p-4 bg-burgundy-900 flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
                 <Bot className="text-gold-400" />
-                <h3 className="font-bold text-sm">Dhevv AI Assistant</h3>
+                <div>
+                  <h3 className="font-bold text-sm">Dhevv AI Assistant</h3>
+                  <p className="text-[10px] text-emerald-400 opacity-80">● Online</p>
+                </div>
               </div>
-              <button onClick={() => setIsOpen(false)}><X size={20} /></button>
+              <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full">
+                <X size={20} />
+              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-stone-50 dark:bg-stone-900/20">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] p-4 rounded-2xl text-[13px] leading-relaxed whitespace-pre-wrap shadow-sm ${
-                    msg.sender === 'user' ? 'bg-burgundy-900 text-white rounded-tr-none' : 'bg-white dark:bg-white/5 dark:text-stone-200 rounded-tl-none'
+                    msg.sender === 'user' 
+                      ? 'bg-burgundy-900 text-white rounded-tr-none' 
+                      : 'bg-white dark:bg-white/5 dark:text-stone-200 rounded-tl-none border border-stone-200 dark:border-white/10'
                   }`}>
                     {renderMessage(msg.text)}
                   </div>
                 </div>
               ))}
-              {isTyping && <div className="text-[10px] text-stone-400 animate-pulse">Dhevv AI Mengetik...</div>}
+              {isTyping && (
+                <div className="flex items-center gap-2 text-[10px] text-stone-400 animate-pulse">
+                  <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" />
+                  Dhevv AI lagi mikir nih...
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -156,7 +188,9 @@ const AIChatWidget: React.FC<{ products: Product[] }> = ({ products }) => {
                   placeholder="Tanya harga apa nih?"
                   className="flex-1 p-3 bg-stone-100 dark:bg-white/5 rounded-xl text-sm outline-none dark:text-white"
                 />
-                <button type="submit" className="p-3 bg-burgundy-900 text-white rounded-xl"><Send size={18} /></button>
+                <button type="submit" className="p-3 bg-burgundy-900 text-white rounded-xl hover:bg-burgundy-800 transition-colors">
+                  <Send size={18} />
+                </button>
               </div>
             </form>
           </div>
