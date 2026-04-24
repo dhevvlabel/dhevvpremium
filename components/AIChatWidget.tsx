@@ -99,17 +99,11 @@ const AIChatWidget: React.FC<{ products: Product[] }> = ({ products }) => {
 
     try {
       const completion = await groq.chat.completions.create({
-        messages: [
-          { role: "system", content: getSystemInstruction() },
-          ...messages.filter(m => m.id !== 'welcome').map(m => ({
-            role: m.sender === 'user' ? "user" : "assistant",
-            content: m.text,
-          })),
-          { role: "user", content: userText }
-        ],
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.8,
-      });
+  messages: groqMessages,
+  model: "llama-3.3-70b-versatile",
+  temperature: 0.6, // Ganti ke 0.6 ya Daf
+  max_tokens: 500,  // Dipendekin aja biar gak kepanjangan curhatnya
+});
 
       const botText = completion.choices[0]?.message?.content || "Duh, lagi pusing nih. Coba lagi ya Kak!";
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: botText, sender: 'bot', timestamp: new Date() }]);
