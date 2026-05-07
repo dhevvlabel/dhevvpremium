@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { CartItem, Order, User, Voucher } from '../types';
 import { formatRupiah } from '../constants';
 import { X, MessageCircle, ShieldCheck, User as UserIcon, Receipt, Clock, Hash, Upload, Image as ImageIcon, Trash2, ArrowLeft, CheckSquare, Square, ShoppingBag, Minus, Plus, AlertCircle, Timer, Phone, Send, CheckCircle, Sparkles, Lock, Mail, Moon, Tag, Copy } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import AnimatedButton from './AnimatedButton';
 
 interface CartModalProps {
@@ -70,7 +70,7 @@ const CartModal: React.FC<CartModalProps> = ({
     setToastMessage('Nomor berhasil disalin');
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isOpen) {
       if (directCheckoutItem) {
         setStep('invoice');
@@ -304,6 +304,10 @@ const CartModal: React.FC<CartModalProps> = ({
           const result = await response.json();
           if (!response.ok) {
             console.error('Email receipt failed:', result);
+            // Optionally alert the user if it's a validation error
+            if (result.error && result.error.includes('Validation')) {
+              console.warn("Resend Validation Error: Please check your Resend Dashboard domain verification.");
+            }
           } else {
             console.log('Email receipt sent successfully:', result.data);
           }
