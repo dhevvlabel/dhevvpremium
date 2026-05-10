@@ -9,12 +9,13 @@ export interface Variant {
 
 export interface Product {
   id?: string;
+  product_code?: string; // NEW: Unique code for linking (Optional for default constants)
   appName: string;
   category: Category;
   variants: Variant[];
   tags?: string[];
   sort_order?: number;
-  icon_url?: string; // <--- PASTIKAN BARIS INI ADA
+  icon_url?: string;
 }
 
 export interface CartItem {

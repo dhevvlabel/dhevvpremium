@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
-import { Trash2, Plus, Percent, DollarSign, Tag, Hash, Check, Search, Users, Ticket, ArrowLeft, ChevronRight, Package } from 'lucide-react';
+import { Trash2, Plus, Percent, DollarSign, Tag, Hash, Check, Search, Users, Ticket, ArrowLeft, ChevronRight, Package, Image as ImageIcon, Upload } from 'lucide-react';
 import { PRODUCTS, formatRupiah } from './constants';
 import { Product } from './types';
 import AnimatedButton from './components/AnimatedButton.tsx';
@@ -14,6 +14,14 @@ interface Voucher {
   is_active: boolean;
 }
 
+interface HeroBanner {
+  id: number;
+  image_url: string;
+  title: string;
+  link_url: string;
+  sort_order: number;
+}
+
 interface UserData {
   id: number;
   name: string;
@@ -25,11 +33,12 @@ interface UserData {
 
 const AdminDhevv: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'vouchers' | 'users' | 'products' | null>(null);
+  const [activeTab, setActiveTab] = useState<'vouchers' | 'users' | 'products' | 'banners' | null>(null);
   
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [banners, setBanners] = useState<HeroBanner[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   
@@ -52,11 +61,19 @@ const AdminDhevv: React.FC = () => {
   // Product Form states
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [productName, setProductName] = useState('');
+  const [productCode, setProductCode] = useState(''); // NEW: Unique Code
   const [productCategory, setProductCategory] = useState<string>('Streaming');
   const [productIconUrl, setProductIconUrl] = useState('');
   const [productVariants, setProductVariants] = useState<any[]>([{ type: '', duration: '', price: 0 }]);
   const [productTags, setProductTags] = useState('');
   const [productSortOrder, setProductSortOrder] = useState(0);
+
+  // Banner Form states
+  const [bannerTitle, setBannerTitle] = useState('');
+  const [bannerLinkUrl, setBannerLinkUrl] = useState('');
+  const [bannerSortOrder, setBannerSortOrder] = useState(0);
+  const [bannerImage, setBannerImage] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -82,11 +99,12 @@ const AdminDhevv: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [vouchersRes, usersRes, storeStatusRes, productsRes] = await Promise.all([
+      const [vouchersRes, usersRes, storeStatusRes, productsRes, bannersRes] = await Promise.all([
         supabase.from('Voucher Dhevv Premium').select('*').order('id', { ascending: false }),
         supabase.from('Users Dhevv Premium').select('*').order('id', { ascending: false }),
         supabase.from('Store Status').select('is_open').eq('id', 1).single(),
-        supabase.from('products').select('*')
+        supabase.from('products').select('*'),
+        supabase.from('banners').select('*').order('sort_order', { ascending: true })
       ]);
 
       if (vouchersRes.error) throw vouchersRes.error;
@@ -106,6 +124,12 @@ const AdminDhevv: React.FC = () => {
           appName: item.app_name,
           app_name: item.app_name
         })));
+      }
+
+      if (bannersRes.error) {
+        console.error('Error fetching banners:', bannersRes.error);
+      } else {
+        setBanners(bannersRes.data || []);
       }
 
       setVouchers(vouchersRes.data || []);
@@ -226,6 +250,7 @@ const AdminDhevv: React.FC = () => {
     try {
       const productData = {
         app_name: productName,
+        product_code: productCode || productName.toLowerCase().replace(/\s+/g, '-'),
         category: productCategory,
         icon_url: productIconUrl || null,
         variants: productVariants,
@@ -254,6 +279,7 @@ const AdminDhevv: React.FC = () => {
       // Reset form
       setEditingProductId(null);
       setProductName('');
+      setProductCode('');
       setProductCategory('Streaming');
       setProductIconUrl('');
       setProductVariants([{ type: '', duration: '', price: 0 }]);
@@ -273,6 +299,7 @@ const AdminDhevv: React.FC = () => {
   const handleEditProduct = (product: Product) => {
     setEditingProductId(product.id || null);
     setProductName(product.appName);
+    setProductCode(product.product_code || '');
     setProductCategory(product.category);
     setProductIconUrl(product.icon_url || '');
     setProductVariants(product.variants || [{ type: '', duration: '', price: 0 }]);
@@ -321,6 +348,103 @@ const AdminDhevv: React.FC = () => {
     const newVariants = [...productVariants];
     newVariants[index] = { ...newVariants[index], [field]: value };
     setProductVariants(newVariants);
+  };
+
+  const handleBannerImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.name.toLowerCase().endsWith('.avif')) {
+        alert('Peringatan: Direkomendasikan menggunakan format .avif untuk performa maksimal.');
+      }
+      setBannerImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bannerImage) {
+      showToast('Gambar banner wajib diupload', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // 1. Upload image to Supabase Storage
+      const fileExt = bannerImage.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `hero-banners/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('banners')
+        .upload(filePath, bannerImage);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('banners')
+        .getPublicUrl(filePath);
+
+      // 3. Insert into database
+      const { error: insertError } = await supabase
+        .from('banners')
+        .insert([
+          {
+            image_url: publicUrl,
+            title: bannerTitle || null,
+            link_url: bannerLinkUrl || null,
+            sort_order: bannerSortOrder
+          }
+        ]);
+
+      if (insertError) throw insertError;
+
+      showToast('Banner berhasil ditambahkan!', 'success');
+      setBannerTitle('');
+      setBannerLinkUrl('');
+      setBannerSortOrder(0);
+      setBannerImage(null);
+      setBannerPreview(null);
+      fetchData();
+    } catch (error: any) {
+      console.error('Error adding banner:', error);
+      showToast('Gagal menambahkan banner. Pastikan bucket "banners" tersedia di Supabase Storage.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteBanner = async (banner: HeroBanner) => {
+    if (!window.confirm('Yakin ingin menghapus banner ini?')) return;
+
+    try {
+      // 1. Delete from Storage
+      const fileName = banner.image_url.split('/').pop();
+      if (fileName) {
+        await supabase.storage
+          .from('banners')
+          .remove([`hero-banners/${fileName}`]);
+      }
+
+      // 2. Delete from DB
+      const { error } = await supabase
+        .from('banners')
+        .delete()
+        .eq('id', banner.id);
+
+      if (error) throw error;
+
+      showToast('Banner berhasil dihapus!', 'success');
+      fetchData();
+    } catch (error: any) {
+      console.error('Error deleting banner:', error);
+      showToast('Gagal menghapus banner', 'error');
+    }
   };
 
   const filteredUsers = users.filter(u => 
@@ -415,6 +539,17 @@ const AdminDhevv: React.FC = () => {
                 </div>
                 <ChevronRight className="text-stone-400 group-hover:text-burgundy-500 transition-colors" />
               </AnimatedButton>
+
+              <AnimatedButton onClick={() => setActiveTab('banners')} className="w-full bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-burgundy-500 transition-all rounded-2xl p-6 flex items-center gap-4 group text-left">
+                <div className="w-14 h-14 shrink-0 rounded-full bg-burgundy-50 text-burgundy-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <ImageIcon size={28} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-stone-900">Manage Hero Banners</h3>
+                  <p className="text-sm text-stone-500">Upload dan kelola slider promo</p>
+                </div>
+                <ChevronRight className="text-stone-400 group-hover:text-burgundy-500 transition-colors" />
+              </AnimatedButton>
             </div>
           </div>
         ) : (
@@ -428,11 +563,125 @@ const AdminDhevv: React.FC = () => {
               </AnimatedButton>
               <h2 className="text-xl font-bold text-stone-900 uppercase">
                 {activeTab === 'vouchers' ? 'Voucher Manager' : 
-                 activeTab === 'products' ? 'Product Manager' : 'User Manager'}
+                 activeTab === 'products' ? 'Product Manager' : 
+                 activeTab === 'banners' ? 'Manage Hero Banners' : 'User Manager'}
               </h2>
             </div>
             
             <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+              {activeTab === 'banners' && (
+                <div className="space-y-6">
+                  <div className="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-stone-900">
+                      <Plus size={20} className="text-burgundy-600" />
+                      Add New Hero Banner
+                    </h2>
+                    
+                    <form onSubmit={handleAddBanner} className="space-y-4">
+                      <div>
+                        <label className="text-sm text-stone-600 font-medium block mb-1.5">Banner Image (Recommended: 21:9 or 3:1)</label>
+                        <div 
+                          onClick={() => document.getElementById('banner-upload')?.click()}
+                          className="w-full aspect-[21/9] border-2 border-dashed border-stone-200 rounded-2xl flex flex-col items-center justify-center bg-stone-50 hover:bg-stone-100 transition-colors cursor-pointer overflow-hidden relative group"
+                        >
+                          {bannerPreview ? (
+                            <>
+                              <img src={bannerPreview} alt="Preview" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p className="text-white font-bold text-sm">Ganti Gambar</p>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="text-stone-400 mb-2" size={32} />
+                              <p className="text-sm text-stone-500 font-medium">Klik untuk upload gambar (.avif disarankan)</p>
+                            </>
+                          )}
+                          <input 
+                            id="banner-upload"
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={handleBannerImageChange}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm text-stone-600 font-medium block mb-1.5">Title (Optional)</label>
+                          <input
+                            type="text"
+                            value={bannerTitle}
+                            onChange={(e) => setBannerTitle(e.target.value)}
+                            className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 px-4 text-stone-900 focus:outline-none focus:border-burgundy-500 transition-all font-medium"
+                            placeholder="Promo Netflix 1 Bulan"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-stone-600 font-medium block mb-1.5">Link URL (Optional)</label>
+                          <input
+                            type="text"
+                            value={bannerLinkUrl}
+                            onChange={(e) => setBannerLinkUrl(e.target.value)}
+                            className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 px-4 text-stone-900 focus:outline-none focus:border-burgundy-500 transition-all font-medium"
+                            placeholder="#products-grid or external link"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-stone-600 font-medium block mb-1.5">Sort Order</label>
+                        <input
+                          type="number"
+                          value={bannerSortOrder}
+                          onChange={(e) => setBannerSortOrder(Number(e.target.value))}
+                          className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 px-4 text-stone-900 focus:outline-none focus:border-burgundy-500 transition-all font-medium"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-3.5 rounded-xl bg-burgundy-600 text-white font-bold uppercase tracking-wide hover:bg-burgundy-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? 'Uploading...' : 'Save Banner'}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <h2 className="text-lg font-bold text-stone-900 mb-4">Active Banners</h2>
+                    <div className="grid grid-cols-1 gap-4">
+                      {banners.map((banner) => (
+                        <div key={banner.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-stone-50 border border-stone-200 rounded-2xl gap-4">
+                          <div className="flex items-center gap-4 w-full sm:w-auto">
+                            <img src={banner.image_url} alt={banner.title} className="w-24 h-12 rounded-lg object-cover border border-stone-200" referrerPolicy="no-referrer" />
+                            <div className="flex-1">
+                              <h3 className="font-bold text-stone-900 text-sm truncate max-w-[200px]">
+                                {banner.title || 'Untitled Banner'}
+                              </h3>
+                              <p className="text-[10px] text-stone-500">Order: {banner.sort_order}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <button
+                              onClick={() => handleDeleteBanner(banner)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
+                            >
+                              <Trash2 size={16} /> Hide
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {banners.length === 0 && (
+                        <p className="text-center py-8 text-stone-500 text-sm italic">Belum ada banner aktif.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'products' && (
                 <div className="space-y-6">
                   <div className="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6 shadow-sm">
@@ -454,6 +703,20 @@ const AdminDhevv: React.FC = () => {
                             required
                           />
                         </div>
+                        <div>
+                          <label className="text-sm text-stone-600 font-medium block mb-1.5">Product Code (Unique ID)</label>
+                          <input
+                            type="text"
+                            value={productCode}
+                            onChange={(e) => setProductCode(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                            className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 px-4 text-stone-900 focus:outline-none focus:border-burgundy-500 focus:ring-1 focus:ring-burgundy-500 transition-all font-medium"
+                            placeholder="netflix-premier"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm text-stone-600 font-medium block mb-1.5">Kategori</label>
                           <select

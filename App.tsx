@@ -27,6 +27,8 @@ const TUTORIAL_STEPS = [
 
 import Footer from './components/Footer';
 
+import BannerSlider from './components/BannerSlider';
+
 const App: React.FC = () => {
   // Theme State
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -80,6 +82,7 @@ const App: React.FC = () => {
             console.log(`🔍 Mapping ${item.app_name}: icon_url is`, item.icon_url); // DEBUG PER PRODUK
             return {
               id: item.id,
+              product_code: item.product_code || item.id,
               appName: item.app_name,
               category: item.category,
               variants: item.variants,
@@ -185,6 +188,36 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  
+  // --- NEW: DEEP LINK HANDLER ---
+  useEffect(() => {
+    const handleDeepLink = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#buy/')) {
+        // Format: #buy/product-code atau #buy/product-code/variant-index
+        const parts = hash.replace('#buy/', '').split('/');
+        const productCode = parts[0];
+        const variantIndex = parts[1] ? parseInt(parts[1]) : 0;
+
+        const targetProduct = products.find(p => p.product_code === productCode);
+        if (targetProduct) {
+          // Pastikan index valid, kalau tidak valid pakai 0
+          const finalIndex = (variantIndex >= 0 && variantIndex < targetProduct.variants.length) ? variantIndex : 0;
+          handleBuyNow(targetProduct, finalIndex);
+          
+          // Reset hash agar link bisa diklik berkali-kali jika perlu
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+    };
+
+    if (products.length > 0) {
+      handleDeepLink();
+      window.addEventListener('hashchange', handleDeepLink);
+    }
+    
+    return () => window.removeEventListener('hashchange', handleDeepLink);
+  }, [products]);
 
   // --- VISITOR TRACKER (Telegram) ---
 useEffect(() => {
@@ -520,6 +553,9 @@ useEffect(() => {
 
         </div>
       </section>
+
+      {/* Banner Slider Section */}
+      <BannerSlider />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 pb-24" id="products-grid">
         
