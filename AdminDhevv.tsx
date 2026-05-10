@@ -710,7 +710,7 @@ const AdminDhevv: React.FC = () => {
                             value={productCode}
                             onChange={(e) => setProductCode(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
                             className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 px-4 text-stone-900 focus:outline-none focus:border-burgundy-500 focus:ring-1 focus:ring-burgundy-500 transition-all font-medium"
-                            placeholder="netflix-premier"
+                            placeholder="namaprodukhurufkecil"
                             required
                           />
                         </div>
